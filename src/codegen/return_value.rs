@@ -125,7 +125,7 @@ pub fn out_parameter_types(analysis: &analysis::functions::Info) -> Vec<TypeId> 
                             .iter()
                             .enumerate()
                             .find_map(|(pos, orig_par)| {
-                                if orig_par.name == mangled_par_name {
+                                if orig_par.name == mangled_par_name.trim_matches('_') {
                                     Some(pos)
                                 } else {
                                     None
@@ -233,7 +233,7 @@ pub fn out_parameters_as_return(env: &Env, analysis: &analysis::functions::Info)
                 .iter()
                 .enumerate()
                 .find_map(|(pos, orig_par)| {
-                    if orig_par.name == mangled_par_name {
+                    if orig_par.name == mangled_par_name.trim_matches('_') {
                         Some(pos)
                     } else {
                         None
