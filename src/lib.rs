@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::assigning_clones)]
+#![allow(warnings)]
 
 /// Log warning only if type in generated library
 macro_rules! warn_main {
