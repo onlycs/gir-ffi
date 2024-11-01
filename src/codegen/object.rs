@@ -1,7 +1,10 @@
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, HashSet},
     io::{Result, Write},
 };
+
+use log::info;
 
 use super::{
     child_properties, function, general,
@@ -374,7 +377,7 @@ fn generate_builder(w: &mut dyn Write, env: &Env, analysis: &analysis::object::I
                 .try_build();
             let comment_prefix = if param_type.is_err() { "//" } else { "" };
             let mut param_type_str = param_type.into_string();
-            let (param_type_override, bounds, conversion) = match param_type_str.as_str() {
+            let (param_type_override, bounds, mut conversion) = match param_type_str.as_str() {
                 "&str" => (
                     Some(format!("impl Into<{glib_crate_name}::GString>")),
                     String::new(),
@@ -436,10 +439,38 @@ fn generate_builder(w: &mut dyn Write, env: &Env, analysis: &analysis::object::I
                 .map(|version| format!("{comment_prefix}{version}\n"))
                 .unwrap_or_default();
 
+            let fix_list_widget = if param_type_str == "&[gtk::Widget]" {
+                conversion = "";
+
+                format!(
+                    r#"
+                    use gobject::{{
+                        gobject_ffi::{{g_value_init, g_value_set_pointer, G_TYPE_POINTER}},
+                        Type, Value
+                    }};
+                    use std::boxed::Box as Box_;
+                    
+                    let boxed = Box_::<[gtk::Widget]>::from({name});
+                    let leak = Box_::leak(boxed) as *mut _;
+                
+                    let {name} = Value::from_type(Type::POINTER);
+                    let raw = {name}.as_ptr();
+
+                    unsafe {{
+                        g_value_init(raw, G_TYPE_POINTER);
+                        g_value_set_pointer(raw, leak as *mut _);
+                    }}
+                    "#
+                )
+            } else {
+                String::new()
+            };
+
             writeln!(
                 w,
                 "
                         {version_prefix}{deprecation_prefix}    {comment_prefix}pub fn {name}{bounds}(self, {name}: {param_type_str}) -> Self {{
+                        {comment_prefix}    {fix_list_widget}
                         {comment_prefix}    Self {{ builder: self.builder.property(\"{property_name}\", {name}{conversion}), }}
                         {comment_prefix}}}",
                 property_name = property.name,

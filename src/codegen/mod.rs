@@ -87,13 +87,13 @@ pub fn generate_mod_rs(
         general::write_vec(w, mod_rs)?;
         writeln!(w)?;
         if !traits.is_empty() {
-            writeln!(w, "pub(crate) mod traits {{")?;
+            writeln!(w, "pub mod traits {{")?;
             general::write_vec(w, traits)?;
             writeln!(w, "}}")?;
         }
 
         if !builders.is_empty() {
-            writeln!(w, "pub(crate) mod builders {{")?;
+            writeln!(w, "pub mod builders {{")?;
             general::write_vec(w, builders)?;
             writeln!(w, "}}")?;
         }

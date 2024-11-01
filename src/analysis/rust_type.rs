@@ -181,6 +181,7 @@ impl MapAny<RustType> for Result {
     }
 }
 
+#[derive(Debug)]
 pub struct RustTypeBuilder<'env> {
     env: &'env Env,
     type_id: library::TypeId,

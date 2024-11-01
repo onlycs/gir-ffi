@@ -72,6 +72,7 @@ pub struct Builder {
 // Value: (global position used as id, type, callbacks)
 type FuncParameters<'a> = BTreeMap<usize, FuncParameter<'a>>;
 
+#[derive(Clone, Debug)]
 struct FuncParameter<'a> {
     pos: usize,
     full_type: Option<(String, String)>,
