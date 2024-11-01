@@ -118,6 +118,36 @@ impl Library {
             if let Some(s) = elem.attr("symbol-prefixes") {
                 ns.symbol_prefixes = s.split(',').map(String::from).collect();
             }
+
+            if ns.shared_library.is_empty() {
+                let camel = ns_name.to_owned();
+
+                // make kebab for .so name
+
+                let split = camel
+                    .split_inclusive(|c: char| c.is_uppercase())
+                    .collect::<Vec<_>>();
+                let mut kebab = String::new();
+
+                for (i, part) in split.iter().enumerate() {
+                    if part.len() < 2 {
+                        kebab.push_str(&part.to_lowercase());
+                        continue;
+                    }
+
+                    let lcase = part.to_lowercase();
+
+                    if i < split.len() - 1 {
+                        kebab.push_str(&lcase[..part.len() - 1]);
+                        kebab.push('-');
+                        kebab.push_str(&lcase[part.len() - 1..]);
+                    } else {
+                        kebab.push_str(&lcase);
+                    }
+                }
+
+                ns.shared_library.push(format!("lib{kebab}.so"));
+            }
         }
 
         trace!(

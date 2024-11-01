@@ -129,7 +129,9 @@ impl Element {
     /// Value of attribute with given name or an error when absent.
     pub fn attr_required(&self, name: &str) -> Result<&str, String> {
         for attr in &self.attributes {
-            if attr.name.local_name == name {
+            if attr.name.local_name == name
+                || (name == "type" && attr.name.local_name == "identifier")
+            {
                 return Ok(&attr.value);
             }
         }
