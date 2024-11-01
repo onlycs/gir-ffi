@@ -48,12 +48,12 @@ impl OutMemMode {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 struct ReturnValue {
     pub ret: return_value::Info,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Builder {
     async_trampoline: Option<AsyncTrampoline>,
     callbacks: Vec<Trampoline>,
@@ -692,7 +692,7 @@ impl Builder {
             name: "user_data".to_string(),
             is_mut: false,
             value: Box::new(Chunk::Custom(format!(
-                "Box_::new({}::new(callback))",
+                "Box_::new({}::new(result_callback))",
                 use_glib_type(env, "thread_guard::ThreadGuard")
             ))),
             type_: Some(Box::new(Chunk::Custom(format!(
@@ -988,9 +988,20 @@ impl Builder {
                 continue;
             }
             let par = &self.parameters[trans.ind_c];
+
+            let mut trans = trans.transformation_type.clone();
+
+            if let TransformationType::ToGlibDirect { ref name } = trans
+                && name == "result_callback"
+            {
+                trans = TransformationType::ToGlibDirect {
+                    name: "Some(callback)".to_string(),
+                };
+            }
+
             let chunk = match par {
                 In => Chunk::FfiCallParameter {
-                    transformation_type: trans.transformation_type.clone(),
+                    transformation_type: trans,
                 },
                 Out { parameter, .. } => Chunk::FfiCallOutParameter {
                     par: parameter.clone(),

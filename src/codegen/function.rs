@@ -257,7 +257,7 @@ pub fn declaration_futures(env: &Env, analysis: &analysis::functions::Info) -> S
     for (pos, par) in analysis.parameters.rust_parameters.iter().enumerate() {
         let c_par = &analysis.parameters.c_parameters[par.ind_c];
 
-        if c_par.name == "callback" || c_par.name == "cancellable" {
+        if c_par.name.contains("callback") || c_par.name.contains("cancellable") {
             skipped += 1;
             if let Some(alias) = analysis
                 .bounds
@@ -427,7 +427,7 @@ pub fn body_chunk_futures(
 
     // Skip the instance parameter
     for par in analysis.parameters.rust_parameters.iter().skip(skip) {
-        if par.name == "cancellable" || par.name == "callback" {
+        if par.name.contains("cancellable") || par.name.contains("callback") {
             continue;
         }
 
@@ -476,7 +476,7 @@ pub fn body_chunk_futures(
     for par in analysis.parameters.rust_parameters.iter().skip(skip) {
         if par.name == "cancellable" {
             writeln!(body, "\t\tSome(cancellable),")?;
-        } else if par.name == "callback" {
+        } else if par.name.contains("callback") {
             continue;
         } else {
             let c_par = &analysis.parameters.c_parameters[par.ind_c];
