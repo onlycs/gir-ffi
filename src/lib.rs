@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::assigning_clones)]
 #![allow(warnings)]
-#![feature(let_chains)]
+#![feature(let_chains, box_patterns)]
 
 /// Log warning only if type in generated library
 macro_rules! warn_main {

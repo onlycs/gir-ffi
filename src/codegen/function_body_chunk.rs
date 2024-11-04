@@ -1211,7 +1211,7 @@ impl Builder {
                 };
                 let call = Chunk::Let {
                     name: name.into(),
-                    is_mut: false,
+                    is_mut: name != "_",
                     value: boxed_call,
                     type_: Option::None,
                 };
