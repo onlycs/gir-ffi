@@ -1,5 +1,5 @@
 use std::{
-    fs,
+    fmt, fs,
     io::{Error, ErrorKind, Result, Write},
 };
 

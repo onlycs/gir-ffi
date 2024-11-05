@@ -58,7 +58,12 @@ impl ToCode for Chunk {
                 let (prefix, suffix) =
                     ret.translate_from_glib_as_function(env, array_length_name.as_deref());
 
-                if prefix.starts_with("FromGlibContainer::from_glib_full_num") {
+                if prefix.starts_with("FromGlibContainer::from_glib_full_num")
+                    && ret
+                        .parameter
+                        .as_ref()
+                        .is_some_and(|n| !n.lib_par.c_type.ends_with("**"))
+                {
                     call_strings[0] = format!("&mut {} as *mut _", call_strings[0]);
                 }
 

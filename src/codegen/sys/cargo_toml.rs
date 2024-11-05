@@ -61,7 +61,7 @@ fn fill_empty(root: &mut Table, env: &Env, crate_name: &str) {
                 "https://github.com/gtk-rs/gtk-rs-core"
             }
             "atk-sys" | "gdk-sys" | "gdkwayland-sys" | "gdkx11-sys" | "gtk-sys" => {
-                "https://github.com/gtk-rs/gtk3-rs"
+                "https://github.com/onlycs/gtk3-rs"
             }
             "gdk4-wayland-sys" | "gdk4-x11-sys" | "gdk4-sys" | "gsk4-sys" | "gtk4-sys" => {
                 "https://github.com/gtk-rs/gtk4-rs"
