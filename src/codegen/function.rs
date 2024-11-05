@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     fmt,
     io::{Result, Write},
     result::Result as StdResult,
@@ -17,7 +18,12 @@ use super::{
     special_functions,
 };
 use crate::{
-    analysis::{self, bounds::Bounds, try_from_glib::TryFromGlib},
+    analysis::{
+        self,
+        bounds::Bounds,
+        out_parameters::{Mode, ThrowFunctionReturnStrategy},
+        try_from_glib::TryFromGlib,
+    },
     chunk::{ffi_function_todo, Chunk},
     env::Env,
     library::{self, TypeId},

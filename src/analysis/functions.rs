@@ -18,7 +18,7 @@ use crate::{
         function_parameters::{self, CParameter, Parameters, Transformation, TransformationType},
         imports::Imports,
         is_gpointer,
-        out_parameters::{self, use_function_return_for_result},
+        out_parameters::{self, use_function_return_for_result, ThrowFunctionReturnStrategy},
         ref_mode::RefMode,
         return_value,
         rust_type::*,
@@ -838,7 +838,7 @@ fn analyze_function(
         }
     }
 
-    let (outs, unsupported_outs) = out_parameters::analyze(
+    let (mut outs, unsupported_outs) = out_parameters::analyze(
         env,
         func,
         &parameters.c_parameters,
@@ -914,11 +914,118 @@ fn analyze_function(
 
     let generate_doc = configured_functions.iter().all(|f| f.generate_doc);
 
+    let bad_functions = vec![
+        "astal_io_quit_instance",
+        "astal_io_open_inspector",
+        "astal_io_toggle_window_by_name",
+        "astal_io_send_message",
+    ];
+
+    let glib_name = func.c_identifier.as_ref().unwrap();
+
+    if bad_functions.contains(&glib_name.as_str()) {
+        outs = analysis::out_parameters::Info {
+            mode: out_parameters::Mode::Throws({
+                if glib_name == "astal_io_send_message" {
+                    ThrowFunctionReturnStrategy::ReturnResult
+                } else {
+                    ThrowFunctionReturnStrategy::Void
+                }
+            }),
+            params: {
+                let mut params = outs.params.clone();
+
+                if glib_name == "astal_io_send_message" {
+                    params.push(analysis::function_parameters::Parameter {
+                        lib_par: library::Parameter {
+                            name: "".to_string(),
+                            typ: library::TypeId { ns_id: 0, id: 28 },
+                            c_type: "gchar*".to_string(),
+                            instance_parameter: false,
+                            direction: library::ParameterDirection::Return,
+                            transfer: library::Transfer::Full,
+                            caller_allocates: false,
+                            nullable: library::Nullable(false),
+                            array_length: None,
+                            is_error: false,
+                            doc: None,
+                            scope: library::ParameterScope::None,
+                            closure: None,
+                            destroy: None,
+                        },
+                        try_from_glib: analysis::try_from_glib::TryFromGlib::NotImplemented,
+                    })
+                }
+
+                params.push(analysis::function_parameters::Parameter {
+                    lib_par: library::Parameter {
+                        name: "error".to_string(),
+                        typ: library::TypeId { ns_id: 2, id: 22 },
+                        c_type: "GError**".to_string(),
+                        instance_parameter: false,
+                        direction: library::ParameterDirection::Out,
+                        transfer: library::Transfer::Full,
+                        caller_allocates: false,
+                        nullable: library::Nullable(true),
+                        array_length: None,
+                        doc: None,
+                        scope: library::ParameterScope::None,
+                        destroy: None,
+                        is_error: true,
+                        closure: None,
+                    },
+                    try_from_glib: analysis::try_from_glib::TryFromGlib::NotImplemented,
+                });
+
+                params
+            },
+        };
+
+        parameters.c_parameters.push(CParameter {
+            name: "error".to_string(),
+            typ: library::TypeId { ns_id: 2, id: 22 },
+            c_type: "GError**".to_string(),
+            instance_parameter: false,
+            direction: library::ParameterDirection::Out,
+            nullable: library::Nullable(true),
+            transfer: library::Transfer::Full,
+            caller_allocates: false,
+            is_error: true,
+            scope: library::ParameterScope::None,
+            user_data_index: None,
+            destroy_index: None,
+            ref_mode: RefMode::None,
+            try_from_glib: analysis::try_from_glib::TryFromGlib::NotImplemented,
+            move_: false,
+        });
+
+        if glib_name == "astal_io_send_message" {
+            parameters.c_parameters[0].c_type = "gchar**".to_string()
+        }
+
+        parameters.transformations.push(Transformation {
+            ind_c: parameters.transformations.len(),
+            ind_rust: None,
+            transformation_type: TransformationType::ToGlibPointer {
+                name: "error".to_string(),
+                instance_parameter: false,
+                transfer: library::Transfer::Full,
+                ref_mode: RefMode::None,
+                to_glib_extra: "".to_string(),
+                explicit_target_type: "".to_string(),
+                pointer_cast: "".to_string(),
+                in_trait: false,
+                nullable: true,
+                move_: false,
+            },
+        })
+    }
+
     Info {
         name,
         func_name: func_name.to_string(),
         new_name,
-        glib_name: func.c_identifier.as_ref().unwrap().clone(),
+        glib_name: glib_name.clone(),
         status,
         kind: func.kind,
         visibility,
