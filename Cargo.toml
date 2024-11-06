@@ -22,9 +22,6 @@ regex = "1.11"
 hprof = "0.1"
 rustdoc-stripper = { git = "https://github.com/GuillaumeGomez/rustdoc-stripper" }
 
-[profile.release]
-codegen-units = 4
-
 [[bin]]
 name = "gir"
 path = "src/main.rs"
