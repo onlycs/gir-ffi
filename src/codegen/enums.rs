@@ -538,6 +538,21 @@ impl FromGlib<{sys_crate_name}::{ffi_name}> for {name} {{
         writeln!(w)?;
     }
 
+    if enum_.name == "WindowAnchor" {
+        writeln!(
+            w,
+            r#"
+impl std::ops::Add<{name}> for {name} {{
+    type Output = Self;
+    fn add(self, other: Self) -> Self {{
+        unsafe {{ Self::from_glib(self.into_glib() + other.into_glib()) }}
+    }}
+}}
+            "#,
+            name = enum_.name
+        )?;
+    }
+
     generate_default_impl(
         w,
         env,
